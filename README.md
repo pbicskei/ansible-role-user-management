@@ -1,7 +1,7 @@
 Role Name
 =========
 
-A brief description of the role goes here.
+Although the name is self explainatory, i'm using this role to ensure my local user has access to all my resources through this role.
 
 Requirements
 ------------
