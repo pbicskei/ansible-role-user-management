@@ -1,0 +1,49 @@
+- name: Make shell available
+  package:
+    name: "{{ item.name }}"
+    state: "{{ item.state }}"
+    update_cache: yes
+  loop: "{{ available_shell }}"
+
+- name: Manage `active_users`
+  user:
+    name: "{{ item.name }}"
+    groups: "{{ item.groups }}"
+    state: "{{ item.state }}"
+    shell: "{{ item.shell }}"
+  loop: "{{ active_users }}"
+  loop_control:
+    label: "{{ item.name }}"
+  
+- name: "Bye bye `flushed` users!"
+  user:
+    state: absent
+    name: "{{ item }}"
+  loop: "{{ flush_users }}"
+  when: ansible_ssh_user not in flush_users
+
+- name: Set includedir in sudoers
+  lineinfile:
+    dest: /etc/sudoers
+    line: "#includedir /etc/sudoers.d"
+    state: present
+    validate: "/usr/sbin/visudo -cf %s"
+
+- name: "Allow admin users to sudo without a password"
+  lineinfile:
+    dest: "/etc/sudoers.d/{{item.name}}"
+    line: "{{ item.name }} ALL=(ALL) NOPASSWD: ALL"
+    state: present
+    mode: 0440
+    create: yes
+    validate: 'visudo -cf %s'
+  loop: "{{ active_users }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: item['admin'] == true
+
+- name: "Add authorized keys"
+  authorized_key:
+    user: "{{ item.name }}"
+    key: "{{ item.pub_key }}"
+  loop: "{{ active_users }}"
