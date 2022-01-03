@@ -1,0 +1,15 @@
+---
+# defaults file for ansible-role-local-users
+available_shell:
+  - { name: zsh, state: present }
+
+flush_users:
+  - pi
+  - ubuntu
+  - ec2_user
+  - centos
+
+default_pub_key_file: "{{ lookup('env', 'HOME') }}/.ssh/id_rsa.pub"
+
+active_users: 
+  - { name: "{{ lookup('env', 'USER') }}", groups: ['sudo', 'adm'], state: present, shell: /bin/zsh, pub_key: "{{ lookup('file', '{{ default_pub_key_file }}' ) }}", admin: true }
